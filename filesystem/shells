@@ -1,0 +1,8 @@
+#
+# /etc/shells
+#
+
+/bin/sh
+/bin/bash
+
+# End of file

@@ -1,0 +1,69 @@
+# args: <group> [options]
+_addgroup() {
+	if ! getent group "$1" >/dev/null && groupadd "$@" >/dev/null; then
+		need_group_update=1
+	fi
+}
+
+# args: <group> [options]
+_adduser() {
+	if ! getent passwd "$1" >/dev/null && useradd "$@" >/dev/null; then
+		need_passwd_update=1
+	fi
+}
+
+post_upgrade() {
+	_addgroup optical -g 93
+	_addgroup audio   -g 92
+	_addgroup video   -g 91
+	_addgroup floppy  -g 94
+	_addgroup storage -g 95
+	_addgroup log     -g 19
+	_addgroup utmp    -g 20
+	_addgroup power   -g 98
+	_addgroup network -g 90
+	_addgroup games   -g 50
+	_addgroup uucp    -g 14
+	_addgroup proc    -g 26
+	_addgroup http    -g 33
+	_adduser  http    -u 33 -d /srv/http -g http -s /usr/bin/nologin
+	_addgroup scanner -g 96
+	_addgroup rfkill  -g 24
+	_addgroup lock    -g 54
+	_addgroup uuidd   -g 68
+	_adduser uuidd    -u 68 -d / -g uuidd -s /usr/bin/nologin
+	_addgroup dbus    -g 81
+	_adduser dbus     -u 81 -d / -g dbus -s /usr/bin/nologin
+	_addgroup input   -g 97
+	_addgroup systemd-journal -g 190
+	_addgroup systemd-journal-gateway -g 191
+	_adduser systemd-journal-gateway -u 191 -g 191 -d / -s /usr/bin/nologin
+	_addgroup systemd-timesync -g 192
+	_adduser systemd-timesync -u 192 -g 192 -d / -s /usr/bin/nologin
+	_addgroup systemd-network -g 193
+	_adduser systemd-network -u 193 -g 193 -d / -s /usr/bin/nologin
+	_addgroup systemd-bus-proxy -g 194
+	_adduser systemd-bus-proxy -u 194 -g 194 -d / -s /usr/bin/nologin
+	_addgroup systemd-resolve -g 195
+	_adduser systemd-resolve -u 195 -g 195 -d / -s /usr/bin/nologin
+
+	# update shadow files if needed
+	if (( need_group_update )); then
+		grpconv >/dev/null
+	fi
+
+	if (( need_passwd_update )); then
+		pwconv >/dev/null
+	fi
+
+	if ! grep -q '^include /etc/ld.so.conf.d/\*.conf$' etc/ld.so.conf; then
+		echo 'include /etc/ld.so.conf.d/*.conf' >> etc/ld.so.conf
+	fi
+
+	# set "Last password change" > 0; otherwise su $user wont work
+	for user in bin daemon mail ftp http nobody; do
+		if LANG=C chage -l ${user} | grep -q 'password must be changed'; then
+			chage -d 14871 ${user}
+		fi
+	done
+}
