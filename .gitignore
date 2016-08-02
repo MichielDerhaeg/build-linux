@@ -1,0 +1,7 @@
+mountdir/
+filesystem/root/
+busybox*
+bzImage
+linux-*
+fs.tar
+mdos.img

@@ -1,5 +1,6 @@
 #!/bin/sh
 
+rm -rf root
 mkdir root
 pkgdir=$PWD/root
 srcdir=$PWD
@@ -83,10 +84,11 @@ ln -s ../man usr/local/share/man
 ### --- custom
 
 install -m755 ../../busybox usr/bin/busybox
+install -m755 ../../bzImage boot/bzImage
 busybox --install -s usr/bin
 
 install -m644 "$srcdir/inittab" etc/inittab
 install -d -m755 etc/init.d
 install -m755 "$srcdir/rcS" etc/init.d/rcS
 
-tar --xattrs -cpf ../fs.tar *
+tar --xattrs -cpf ../../fs.tar *
