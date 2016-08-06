@@ -3,7 +3,7 @@ KERNEL_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$(KERNEL_VERSION).
 BUSYBOX_VERSION=1.24.2
 BUSYBOX_URL=https://www.busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2
 
-all: bzImage
+all: fs.tar
 
 linux-$(KERNEL_VERSION).tar.xz:
 	wget $(KERNEL_URL)
@@ -33,3 +33,5 @@ fs.tar: bzImage busybox
 
 mdos.img: fs.tar gen_image.sh
 	./gen_image.sh
+
+.PHONY: fs.tar

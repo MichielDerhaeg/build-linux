@@ -89,6 +89,6 @@ busybox --install -s usr/bin
 
 install -m644 "$srcdir/inittab" etc/inittab
 install -d -m755 etc/init.d
-install -m755 "$srcdir/rcS" etc/init.d/rcS
+install -m755 "$srcdir/systemctl" sbin/systemctl
 
 tar --xattrs -cpf ../../fs.tar *

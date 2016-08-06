@@ -1,0 +1,27 @@
+#!/bin/sh
+
+init() {
+  # TODO options
+  /usr/bin/mount -t proc proc /proc
+  /usr/bin/mount -t sysfs sys /sys
+  /usr/bin/mount -t devtmpfs dev /dev
+  mkdir -p /dev/pts /dev/shm # TODO check if in filesystem
+  /usr/bin/mount -t devpts devpts /dev/pts
+  /usr/bin/mount -t tmpfs tmpfs /dev/shm
+
+  if [[ -f /etc/hostname ]]; then
+    echo "$(cat /etc/hostname)" > /proc/sys/kernel/hostname
+  fi
+
+  /sbin/mdev -s
+  echo /sbin/mdev > /proc/sys/kernel/hotplug
+
+  /usr/bin/mount -a
+  /usr/bin/mount -o remount,rw /
+}
+
+case $1 in
+  init)
+    init
+    ;;
+esac
