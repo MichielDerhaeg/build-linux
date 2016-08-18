@@ -8,9 +8,10 @@ init() {
   mkdir -p /dev/pts /dev/shm # TODO check if in filesystem
   /usr/bin/mount -t devpts devpts /dev/pts
   /usr/bin/mount -t tmpfs tmpfs /dev/shm
+  /usr/bin/mount -t tmpfs tmpfs /run
 
   if [[ -f /etc/hostname ]]; then
-    echo "$(cat /etc/hostname)" > /proc/sys/kernel/hostname
+    cat /etc/hostname > /proc/sys/kernel/hostname
   fi
 
   /sbin/mdev -s
