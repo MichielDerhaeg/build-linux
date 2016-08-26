@@ -18,7 +18,7 @@ mkdir -p mountdir
 mount $looppart mountdir
 cd mountdir
 tar --xattrs -xpf ../fs.tar
-grub-install --target=i386-pc --boot-directory="$PWD/boot" $loopdevice
+grub-install --locales="" --themes="" --target=i386-pc --boot-directory="$PWD/boot" $loopdevice
 cd ..
 
 ## generate grub.cfg (since linux 3.8 32-bit MBR "NT disk signatures" are allowed)
