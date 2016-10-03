@@ -1,4 +1,4 @@
-KERNEL_VERSION=4.6.4
+KERNEL_VERSION=4.4.23
 KERNEL_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$(KERNEL_VERSION).tar.xz
 BUSYBOX_VERSION=1.24.2
 BUSYBOX_URL=https://www.busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2
