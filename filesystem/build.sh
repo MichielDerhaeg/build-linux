@@ -91,8 +91,13 @@ done
 
 install -m644 "$srcdir/inittab" etc/inittab
 install -d -m755 etc/init.d
+install -d -m755 etc/rc.d
 install -m755 "$srcdir/rcS" etc/init.d
 
+install -Dm755 "$srcdir/udhcpc.run" etc/init.d/udhcpc/run
+ln -s /etc/init.d/udhcpc etc/rc.d
+
+install -Dm755 "$srcdir/simple.script" usr/share/udhcpc/default.script #script is busybox example
 install -Dm644 "$srcdir/be-latin1.bmap" usr/share/keymaps/be-latin1.bmap
 
 tar --xattrs -cpf ../../fs.tar *

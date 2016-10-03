@@ -1,4 +1,5 @@
 ::sysinit:/etc/init.d/rcS
-::askfirst:-/bin/sh
+::respawn:/bin/runsvdir /etc/rc.d
+::askfirst:-/bin/login
 ::ctrlaltdel:/bin/umount -a -r
 ::shutdown:/usr/bin/umount -a -r
