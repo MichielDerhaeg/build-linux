@@ -1,4 +1,4 @@
-::sysinit:/sbin/systemctl init
+::sysinit:/etc/init.d/rcS
 ::askfirst:-/bin/sh
 ::ctrlaltdel:/bin/umount -a -r
 ::shutdown:/usr/bin/umount -a -r

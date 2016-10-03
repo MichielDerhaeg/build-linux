@@ -85,10 +85,14 @@ ln -s ../man usr/local/share/man
 
 install -m755 ../../busybox usr/bin/busybox
 install -m755 ../../bzImage boot/bzImage
-busybox --install -s usr/bin
+for bin in $(../../busybox --list); do
+  ln -s /usr/bin/busybox usr/bin/$bin
+done
 
 install -m644 "$srcdir/inittab" etc/inittab
 install -d -m755 etc/init.d
-install -m755 "$srcdir/systemctl" sbin/systemctl
+install -m755 "$srcdir/rcS" etc/init.d
+
+install -Dm644 "$srcdir/be-latin1.bmap" usr/share/keymaps/be-latin1.bmap
 
 tar --xattrs -cpf ../../fs.tar *
