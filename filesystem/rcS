@@ -16,6 +16,8 @@ fi
 /sbin/mdev -s
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 
+/bin/ip link set up dev lo
+
 /usr/bin/mount -a
 /usr/bin/mount -o remount,rw /
 
