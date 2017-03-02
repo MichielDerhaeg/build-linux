@@ -1,6 +1,6 @@
-KERNEL_VERSION=4.4.23
+KERNEL_VERSION=4.4.52
 KERNEL_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$(KERNEL_VERSION).tar.xz
-BUSYBOX_VERSION=1.24.2
+BUSYBOX_VERSION=1.26.2
 BUSYBOX_URL=https://www.busybox.net/downloads/busybox-$(BUSYBOX_VERSION).tar.bz2
 
 all: fs.tar
@@ -25,7 +25,7 @@ busybox-$(BUSYBOX_VERSION): busybox-$(BUSYBOX_VERSION).tar.bz2
 busybox: busybox-$(BUSYBOX_VERSION) bb-config
 	sed '1,1i#include <sys/resource.h>' -i busybox-$(BUSYBOX_VERSION)/include/libbb.h
 	cp bb-config busybox-$(BUSYBOX_VERSION)/.config
-	$(MAKE) CFLAGS="-O2 -fstack-protector-strong" CC=musl-gcc -C busybox-$(BUSYBOX_VERSION)
+	$(MAKE) CC=musl-gcc -C busybox-$(BUSYBOX_VERSION)
 	cp busybox-$(BUSYBOX_VERSION)/busybox .
 
 fs.tar: bzImage busybox

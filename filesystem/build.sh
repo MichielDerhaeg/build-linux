@@ -100,4 +100,6 @@ ln -s /etc/init.d/udhcpc etc/rc.d
 install -Dm755 "$srcdir/simple.script" usr/share/udhcpc/default.script #script is busybox example
 install -Dm644 "$srcdir/be-latin1.bmap" usr/share/keymaps/be-latin1.bmap
 
+echo hostname > etc/hostname
+
 tar --xattrs -cpf ../../fs.tar *

@@ -23,7 +23,7 @@ cd ..
 
 ## generate grub.cfg (since linux 3.8 32-bit MBR "NT disk signatures" are allowed)
 uuid=$(fdisk -l $image | grep "Disk identifier" | cut -d " " -f 3 | cut --complement -c 1,2)-01
-echo -e "linux /boot/bzImage root=PARTUUID=$uuid\nboot" > "mountdir/boot/grub/grub.cfg"
+echo -e "linux /boot/bzImage quiet root=PARTUUID=$uuid\nboot" > "mountdir/boot/grub/grub.cfg"
 
 umount mountdir
 sync
