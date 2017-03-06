@@ -96,6 +96,10 @@ install -m755 "$srcdir/rcS" etc/init.d
 
 install -Dm755 "$srcdir/udhcpc.run" etc/init.d/udhcpc/run
 ln -s /etc/init.d/udhcpc etc/rc.d
+install -Dm755 "$srcdir/syslogd.run" etc/init.d/syslogd/run
+ln -s /etc/init.d/syslogd etc/rc.d
+install -Dm755 "$srcdir/klogd.run" etc/init.d/klogd/run
+ln -s /etc/init.d/klogd etc/rc.d
 
 install -Dm755 "$srcdir/simple.script" usr/share/udhcpc/default.script #script is busybox example
 install -Dm644 "$srcdir/be-latin1.bmap" usr/share/keymaps/be-latin1.bmap

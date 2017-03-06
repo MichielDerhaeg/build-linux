@@ -1,0 +1,2 @@
+#!/bin/sh
+exec syslogd -n -b 5

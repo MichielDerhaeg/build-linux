@@ -32,6 +32,6 @@ fs.tar: bzImage busybox
 	$(MAKE) -C filesystem
 
 mdos.img: fs.tar gen_image.sh
-	./gen_image.sh
+	sudo ./gen_image.sh
 
 .PHONY: fs.tar
