@@ -1,5 +1,7 @@
 ::sysinit:/etc/init.d/rcS
 ::respawn:/bin/runsvdir /etc/rc.d
-::askfirst:-/bin/sh
+tty1::respawn:/sbin/getty 38400 tty1
+tty2::respawn:/sbin/getty 38400 tty2
+tty3::respawn:/sbin/getty 38400 tty3
 ::ctrlaltdel:/bin/umount -a -r
 ::shutdown:/usr/bin/umount -a -r
