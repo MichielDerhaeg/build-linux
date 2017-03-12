@@ -30,6 +30,7 @@ ln -s /proc/self/mounts etc/mtab
 for f in shadow; do
   install -m600 "$srcdir"/$f etc/
 done
+install -m755 "$srcdir"/locale.sh etc/profile.d/locale.sh
 
 # setup /var
 for d in cache local opt log/old lib/misc empty; do
