@@ -23,17 +23,13 @@ install -d -m555 -g ftp srv/ftp
 
 # setup /etc
 install -d etc/{ld.so.conf.d,skel,profile.d}
-for f in fstab group host.conf hosts issue ld.so.conf motd nsswitch.conf passwd resolv.conf securetty shells profile; do
+for f in fstab group hosts issue passwd profile; do
   install -m644 "$srcdir"/$f etc/
 done
 ln -s /proc/self/mounts etc/mtab
-for f in gshadow shadow crypttab; do
+for f in shadow; do
   install -m600 "$srcdir"/$f etc/
 done
-touch etc/arch-release
-install -D -m644 "$srcdir"/modprobe.d.usb-load-ehci-first usr/lib/modprobe.d/usb-load-ehci-first.conf
-install -m755 "$srcdir"/locale.sh etc/profile.d/locale.sh
-install -Dm644 "$srcdir"/os-release "$pkgdir"/usr/lib/os-release
 
 # setup /var
 for d in cache local opt log/old lib/misc empty; do
