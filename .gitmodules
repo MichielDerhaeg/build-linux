@@ -1,0 +1,3 @@
+[submodule "kernel-headers"]
+	path = kernel-headers
+	url = https://github.com/sabotage-linux/kernel-headers.git
