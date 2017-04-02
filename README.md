@@ -35,20 +35,20 @@ some build tools. Installing ``build-essential`` on Ubuntu (or ``base-devel`` on
 Arch Linux) will almost give you everything you need. You'll also need to
 install ``bc`` for some reason.
 
-The next step is configuring you build, inside the untarred directory you do
-``make defconfig``. This will generate a default config for your currect
-architecture and place it in ``.config``. You can edit it directly with a text
+The next step is configuring your build, inside the untarred directory you do
+``make defconfig``. This will generate a default config for your current cpu
+architecture and put it in ``.config``. You can edit it directly with a text
 editor but it's much better to do it with an interface by doing ``make nconfig``
 (this needs ``libncurses5-dev`` on Ubuntu). Here you can enable/disable features
 and device drivers with the spacebar. ``*`` means that it will be compiled in
 your kernel image. ``M`` means it will be compiled inside a seprate kernel
-module. Which is a part of the kernel that will be put in a seperate file and
-can be loaded in dynamically in the kernel when they are required. The default
+module. This is a part of the kernel that will be put in a seperate file and can
+be loaded in dynamically in the kernel when they are required. The default
 config will do just fine for basic stuff like running in a virtual machine. But
 in our case, we don't really want to deal with kernel modules so we'll just do
-this: ``sed "s/=m/=y/" -i .config``. Building the kernel is now just running
-``make``. Don't forget to add ``-jN`` with `N` the number of cores of this might
-take a while.
+this: ``sed "s/=m/=y/" -i .config``. We're done, so we can simply do ``make`` to
+build our kernel. Don't forget to add ``-jN`` with `N` the number of cores
+because this might take a while.
 
 Other useful/interesting ways to configure the kernel are:
 
