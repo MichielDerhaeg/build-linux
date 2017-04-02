@@ -204,3 +204,57 @@ $ cp /path/to/bzImage boot/bzImage
 
 The Boot Loader
 ---------------
+
+The next step is to install the bootloader, the program that loads our kernel in
+memory and starts it. For this we use GRUB, one of the most widely used
+bootloaders. It has a ton of features but we are going to keep it very simple.
+Installing it is very simple, we just do this:
+```bash
+grub-install --modules=part_msdos --target=i386-pc --boot-directory="$PWD/boot" /dev/loop0
+```
+The ``--target=i386-pc`` tells grub to use the simple msdos MBR bootloader. This
+is often the default but this can vary from machine to machine so you better
+specify it here. The ``--boot-directory`` options tells grub to install the grub
+files in /boot inside the image instead of the /boot of your current system.
+``--modules=part_msdos`` is a workaround for a bug in Ubuntu's grub. When you
+use ``losetup -P``, grub doesn't detect the root device correctly and doesn't
+think it needs to support msdos partition tables and won't be able to find the
+root partition.
+
+Now we just have to configure grub and then our system should be able to boot.
+This basicly means telling grub how to load the kernel. This config is located
+at ``boot/grub/grub.cfg`` (some distro's use ``/boot/grub2``). This file needs
+to be created first, but before we do that, we need to figure something out
+first. If you look at ``/proc/cmdline`` on your own machine you might see
+something like this:
+```bash
+$ cat /proc/cmdline
+BOOT_IMAGE=/boot/vmlinuz-4.4.0-71-generic root=UUID=83066fa6-cf94-4de3-9803-ace841e5066c ro
+```
+These are the arguments passed to your kernel when it's booted. The 'root'
+options tells our kernel which device holds the root filesystem that needs to be
+mounted at '/'. The kernel needs to know this or it won't be able to boot. There
+are different ways of identifying your the root filesystem. Using a UUID is a
+good way because it is a unique identifier for the filesystem generated when you
+do ``mkfs``. The issue with using this, is that the kernel doesn't really
+support it because it depends on the implementation of the filesystem. This
+works on your system and I'll explain later why. But we can't use it now. We
+could do ``root=/dev/sda1``, this will probably work but it has some problems.
+The 'a' in 'sda' is dependant on the order the bios will load the disk and this
+can change when you add a new disk or sometimes the order can change randomly.
+Or when you use a different type of interface/disk it can be something entirely
+different. So we need something more robust. I suggest we use the PARTUUID. It's
+a unique id for the partition (and not the filesystem, like UUID) and this is a
+somewhat recent addition to the kernel for msdos partition tables (GPT had this
+for a while since it is quite essential for it's functionality). We'll find the
+id like this:
+```bash
+$ fdisk -l ../image | grep "Disk identifier"
+Disk identifier: 0x4f4abda5
+```
+
+So the grub.cfg should look like this:
+```
+linux /boot/bzImage quiet init=/bin/sh root=PARTUUID=4f4abda5-01
+boot
+```
