@@ -65,3 +65,38 @@ Other useful/interesting ways to configure the kernel are:
       kernel.
 
   * ``make randconfig`` generates a random config...
+
+Busybox Userspace
+-----------------
+
+All these tools you know and love like ``ls``, ``echo``, ``cat`` ``mv`` and
+``rm`` and so on. Which are commenly referred to as the 'coreutils'. It has that
+and alot more, like utilities from ``util-linux`` so we can do stuff like
+``mount`` and even a complete init system. Basicly most tools to expect to be
+present on a Linux system only are these somewhat simplified.
+
+You can get the source from [busybox.net](https://busybox.net/). They also
+provide prebuilt binaries which will do just fine for most use-cases. But just
+to be sure we will build our own version.
+
+Configuring busybox is very similar to configuring the kernel. It also uses a
+``.config`` file and you can do ``make defconfig`` to generate one. But we are
+going to use the one I provided (which I stole from Arch Linux). You can find
+the config in this git repo with the name ``bb-config``. Like the ``defconfig``
+version, this has most utilities enabled but with a few differences.
+
+The C Standard Library
+----------------------
+
+The C standard library is more important to the operating system than you might
+think. It provides some useful functions and an interface to the kernel. But it
+also handles DNS requests and provides a dynamic linker. We don't really have to
+pay attention to any of this, we can just statically link the one we are using
+right know which is probably 'glibc'. This means the following part is optional.
+But I thought this would make it more interesting and it also makes us able to
+build smaller binaries.
+
+That's because we are going to use [musl](https://www.musl-libc.org/), which is
+a lightweight libc implementation. You can get it by installing ``musl-tools``
+on Ubuntu or simply ``musl`` on Arch Linux. Now we can link binaries to musl
+instead of glibc by using ``musl-gcc`` instead of ``gcc``.
