@@ -1,8 +1,6 @@
 Build yourself a Linux
 ======================
 
-% TODO explain Makefile
-
 Abstract
 --------
 
@@ -13,6 +11,10 @@ making it do something useful I learned quite alot. Too much time has been
 spent reading very old and hard to find documentation, or when there was none
 the source code of how other people were doing it. So I thought, why not share
 what I have learned.*
+
+This git repo contains a Makefile and scripts that automate everything that will
+be explained in this document. But it doesn't necessarily do everything in the
+same order as it's explained. You can also use that as reference if you'd like.
 
 The Linux Kernel
 ----------------
@@ -53,18 +55,29 @@ Other useful/interesting ways to configure the kernel are:
   * ``make localmodconfig`` will look at the modules that are currently
       loaded in the running kernel and change the config so that only those are
       enabled as module. Useful for when you only want to build the things you
-      need without having to figure out what that is. % TODO LSMOD and caveat
+      need without having to figure out what that is. So you can install
+      something like Ubuntu on the machine first, copy the config to your build
+      machine, usually located in /boot, Arch Linux has it in gzipped at
+      /proc/config.gz). Do ``lsmod > /tmp/lsmodfile``, transfer this file to you
+      build machine and run ``LSMOD=lsmodfile make localmodconfig`` there
+      starting from the config you copied. And you end up with a kernel that is
+      perfectly tailored for your machine. But this has a huge disadvantage, your
+      kernel only supports what you were using at the time. If you insert a
+      usb drive, it might not work because you weren't using the kernel module
+      for fat32 support at the time.
 
-  * ``make localyesconfig``,the same as above but everything gets compiled in
+  * ``make localyesconfig``is the same as above but everything gets compiled in
       the kernel instead as a kernel module.
 
   * ``make allmodconfig`` generates a new config where all options are enabled
       and as much as possible as module.
 
-  * ``make allyesconfig``, same as above but with everything compiled in the
+  * ``make allyesconfig``is same as above but with everything compiled in the
       kernel.
 
   * ``make randconfig`` generates a random config...
+
+You can check out ``make help`` for more info.
 
 Busybox Userspace
 -----------------
@@ -80,12 +93,13 @@ provide prebuilt binaries which will do just fine for most use-cases. But just
 to be sure we will build our own version.
 
 Configuring busybox is very similar to configuring the kernel. It also uses a
-``.config`` file and you can do ``make defconfig`` to generate one. But we are
-going to use the one I provided (which I stole from Arch Linux). You can find
-the config in this git repo with the name ``bb-config``. Like the ``defconfig``
-version, this has most utilities enabled but with a few differences like
-statically linking all libraries.  Building busybox is again done by simply
-doing ``make``, but before we do this, let's look into ``musl`` first.
+``.config`` file and you can do ``make defconfig`` to generate one and ``make
+menuconfig`` to configure it with a GUI. But we are going to use the one I
+provided (which I stole from Arch Linux). You can find the config in this git
+repo with the name ``bb-config``. Like the ``defconfig`` version, this has most
+utilities enabled but with a few differences like statically linking all
+libraries.  Building busybox is again done by simply doing ``make``, but before
+we do this, let's look into ``musl`` first.
 
 The C Standard Library
 ----------------------
@@ -211,8 +225,8 @@ for util in $(./usr/bin/busybox --list-full); do
   ln -s /usr/bin/busybox $util
 done
 ```
-These symlinks might be incorrect from outside the system, but they work just
-fine from within the booted system.
+These symlinks might be incorrect from outside the system because of the
+absolute path, but they work just fine from within the booted system.
 
 The Boot Loader
 ---------------
