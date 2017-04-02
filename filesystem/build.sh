@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 rm -rf root
 mkdir root
@@ -19,7 +19,7 @@ install -d -m555 sys
 install -d -m0750 root
 install -d -m1777 tmp
 # vsftpd won't run with write perms on /srv/ftp
-install -d -m555 -g ftp srv/ftp
+#install -d -m555 -g ftp srv/ftp
 
 # setup /etc
 install -d etc/{ld.so.conf.d,skel,profile.d}
@@ -30,7 +30,7 @@ ln -s /proc/self/mounts etc/mtab
 for f in shadow; do
   install -m600 "$srcdir"/$f etc/
 done
-install -m755 "$srcdir"/locale.sh etc/profile.d/locale.sh
+#install -m755 "$srcdir"/locale.sh etc/profile.d/locale.sh
 
 # setup /var
 for d in cache local opt log/old lib/misc empty; do
