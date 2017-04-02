@@ -83,7 +83,9 @@ Configuring busybox is very similar to configuring the kernel. It also uses a
 ``.config`` file and you can do ``make defconfig`` to generate one. But we are
 going to use the one I provided (which I stole from Arch Linux). You can find
 the config in this git repo with the name ``bb-config``. Like the ``defconfig``
-version, this has most utilities enabled but with a few differences.
+version, this has most utilities enabled but with a few differences like
+statically linking all libraries.  Building busybox is again done by simply
+doing ``make``, but before we do this, let's look into ``musl`` first.
 
 The C Standard Library
 ----------------------
@@ -100,3 +102,105 @@ That's because we are going to use [musl](https://www.musl-libc.org/), which is
 a lightweight libc implementation. You can get it by installing ``musl-tools``
 on Ubuntu or simply ``musl`` on Arch Linux. Now we can link binaries to musl
 instead of glibc by using ``musl-gcc`` instead of ``gcc``.
+
+Before we can build busybox with musl, we need sanitized kernel headers for use
+with musl. You get get that from [this github
+repo](https://github.com/sabotage-linux/kernel-headers). And set
+``CONFIG_EXTRA_CFLAGS`` in your busybox config to
+``CONFIG_EXTRA_CFLAGS="-I/path/to/kernel-headers/x86_64/include"`` to use them.
+Obviously change ``/path/to`` to the location where you put the headers repo,
+can be relative from within the busybox source directory.
+
+If you run ``make`` now, the busybox executable will be significantly smaller
+because we are statically linking a much smaller libc.
+
+Be advised that even though there is a libc standard, musl is not always a
+drop-in replacement from glibc if the application you're compiling uses glibc
+specific things.
+
+Building the Disk Image
+-----------------------
+
+Installing a OS on a file instead of a real disk complicates things but this
+makes development and testing it easier.
+
+So let's start by allocating a new file of size 100M by doing ``fallocate -l100M
+image``(some distro's don't have ``fallocate`` so you can do ``dd if=/dev/zero
+of=image bs=1M count=100`` instead). And then we format it like we would format
+a dis with ``fdisk image``. It automatically creates a MBR partition table for
+us and we'll create just 1 partition filling the whole by pressing 'n' and
+afterwards just use the default options for everything and keep spamming 'enter'
+untill you're done. Finally press 'w' exit and to write the changes to the
+image.
+```bash
+$ fdisk image
+
+Welcome to fdisk (util-linux 2.29.2).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table.
+Created a new DOS disklabel with disk identifier 0x319d111f.
+
+Command (m for help): n
+Partition type
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended (container for logical partitions)
+Select (default p):
+
+Using default response p.
+Partition number (1-4, default 1):
+First sector (2048-204799, default 2048):
+Last sector, +sectors or +size{K,M,G,T,P} (2048-204799, default 204799):
+
+Created a new partition 1 of type 'Linux' and of size 99 MiB.
+
+Command (m for help): w
+The partition table has been altered.
+Syncing disks.
+```
+
+In order to interact with our new partition we'll create a loop device for our
+image. Loop devices are block devices (like actual disks) that in our case
+point to a file instread of real hardware. For this we need root so sudo up
+with ``sudo su`` or however you prefer to gain root privileges and afterwards
+run:
+```bash
+$ losetup -P -f --show image
+/dev/loop0
+```
+The loop device probably ends with a 0 but it could be different in your case.
+The ``-P`` makes sure the partition also gets a loop device, ``/dev/loop0p1`` in
+my case. Let's make a filesystem on it.
+```bash
+$ mkfs.ext4 /dev/loop0p1
+```
+If you want to use something else than ext4, be sure to enable it when
+configuring your kernel. Now that we have done that, we can mount it start
+putting everything in place.
+```bash
+$ mkdir image_root
+$ mount /dev/loop0p1 image_root
+$ cd image_root # it's important you do the following commands from this location
+$ mkdir -p usr/{sbin,bin} bin sbin boot
+```
+And while we're at it, we can create the rest of the file system hierarchy. This
+is actually standardized and applications often assume this is the way you're
+doing it, but you can often do what you want. You can find more info in this
+[here](http://www.pathname.com/fhs/).
+```bash
+$ mkdir -p {dev,etc,home,lib}
+$ mkdir -p {mnt,opt,proc,srv,sys}
+$ mkdir -p var/{lib,lock,log,run,spool}
+$ install -d -m 0750 root
+$ install -d -m 1777 tmp
+$ mkdir -p usr/{include,lib,share,src}
+```
+We'll copy our binaries over.
+```bash
+$ cp /path/to/busybox usr/bin/busybox
+$ cp /path/to/bzImage boot/bzImage
+```
+
+The Boot Loader
+---------------
