@@ -201,6 +201,18 @@ We'll copy our binaries over.
 $ cp /path/to/busybox usr/bin/busybox
 $ cp /path/to/bzImage boot/bzImage
 ```
+You can call every busybox utility by supplying the utility as argument, like
+so: ``busybox ls --help``. But busybox also detects by what name it is called
+and then executes that utility. So you can put symlinks for each utility and
+busybox can figure out which utility you want by the symlink's name.
+
+```bash
+for util in $(./usr/bin/busybox --list-full); do
+  ln -s /usr/bin/busybox $util
+done
+```
+These symlinks might be incorrect from outside the system, but they work just
+fine from within the booted system.
 
 The Boot Loader
 ---------------
@@ -232,7 +244,7 @@ $ cat /proc/cmdline
 BOOT_IMAGE=/boot/vmlinuz-4.4.0-71-generic root=UUID=83066fa6-cf94-4de3-9803-ace841e5066c ro
 ```
 These are the arguments passed to your kernel when it's booted. The 'root'
-options tells our kernel which device holds the root filesystem that needs to be
+option tells our kernel which device holds the root filesystem that needs to be
 mounted at '/'. The kernel needs to know this or it won't be able to boot. There
 are different ways of identifying your the root filesystem. Using a UUID is a
 good way because it is a unique identifier for the filesystem generated when you
@@ -245,16 +257,40 @@ can change when you add a new disk or sometimes the order can change randomly.
 Or when you use a different type of interface/disk it can be something entirely
 different. So we need something more robust. I suggest we use the PARTUUID. It's
 a unique id for the partition (and not the filesystem, like UUID) and this is a
-somewhat recent addition to the kernel for msdos partition tables (GPT had this
-for a while since it is quite essential for it's functionality). We'll find the
-id like this:
+somewhat recent addition to the kernel for msdos partition tables (it's actually
+a GPT thing). We'll find the id like this:
 ```bash
 $ fdisk -l ../image | grep "Disk identifier"
 Disk identifier: 0x4f4abda5
 ```
-
-So the grub.cfg should look like this:
+Then we drop the 0x and append the partition number as two digit hexidecimal.  A
+MBR only has 4 partitions max so that it's hexidecimal or decimal doesn't really
+matter but that's what the standard says. So the grub.cfg should look like this:
 ```
 linux /boot/bzImage quiet init=/bin/sh root=PARTUUID=4f4abda5-01
 boot
 ```
+The ``defconfig`` kernel is actually a debug build so it's very verbose, so to
+make it shut up you can add the ``quiet`` option. This stops it from being
+printed to the console, you can still read it with the ``dmesg`` utility.
+
+``init`` specifies the first process that will be started when the kernel is
+booted. For now we just start a shell, we'll configure a real init when it's
+booted.
+
+So now we should be able to boot the system. You can umount the image, exit root
+and start a VM to test it out. The simplest way of doing this is using QEMU.
+The Ubuntu package is ``qemu-kvm``, and just ``qemu`` on Arch Linux.
+```bash
+$ cd ../
+$ umount image_root
+$ exit
+$ qemu-system-x86_64 -enable-kvm image
+```
+And if everything went right you should now be dropped in a shell in our
+homemade operating system.
+
+PID 1, The Init
+---------------
+
+% TODO
