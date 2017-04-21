@@ -289,8 +289,8 @@ make it shut up you can add the ``quiet`` option. This stops it from being
 printed to the console, you can still read it with the ``dmesg`` utility.
 
 ``init`` specifies the first process that will be started when the kernel is
-booted. For now we just start a shell, we'll configure a real init when it's
-booted.
+booted. For now we just start a shell, we'll configure a real init while it's
+running.
 
 So now we should be able to boot the system. You can umount the image, exit root
 and start a VM to test it out. The simplest way of doing this is using QEMU.
@@ -298,13 +298,13 @@ The Ubuntu package is ``qemu-kvm``, and just ``qemu`` on Arch Linux.
 ```bash
 $ cd ../
 $ umount image_root
-$ exit
+$ exit # we shouldn't need root anymore
 $ qemu-system-x86_64 -enable-kvm image
 ```
 And if everything went right you should now be dropped in a shell in our
 homemade operating system.
 
-PID 1, The Init
+PID 1: /sbin/init
 ---------------
 
 % TODO
