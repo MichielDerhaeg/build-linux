@@ -236,7 +236,10 @@ memory and starts it. For this we use GRUB, one of the most widely used
 bootloaders. It has a ton of features but we are going to keep it very simple.
 Installing it is very simple, we just do this:
 ```bash
-grub-install --modules=part_msdos --target=i386-pc --boot-directory="$PWD/boot" /dev/loop0
+grub-install --modules=part_msdos \ 
+             --target=i386-pc \
+             --boot-directory="$PWD/boot" \
+             /dev/loop0
 ```
 The ``--target=i386-pc`` tells grub to use the simple msdos MBR bootloader. This
 is often the default but this can vary from machine to machine so you better
@@ -304,7 +307,98 @@ $ qemu-system-x86_64 -enable-kvm image
 And if everything went right you should now be dropped in a shell in our
 homemade operating system.
 
+**Side note:** When using QEMU, you don't actually need a bootloader. You can
+tell QEMU to load the kernel for us.
+```bash
+$ qemu-system-x86_64 -enable-kvm \
+                     -kernel bzImage \
+                     -append "quiet init=/bin/sh root=/dev/sda1" \
+                     image
+
+```
+Where ``bzImage`` points to the kernel we built on your system, not the image.
+and ``-append`` specifies the kernel arguments(don't forget the quotes). This
+could be useful when you would like to try different kernel parameters without
+changing ``grub.cfg`` every time.
+
 PID 1: /sbin/init
 ---------------
 
-% TODO
+The first process started by the kernel (now ``/bin/sh``) has process id 1. This
+is not just a number and has some special implications for this process. The
+most important thing to note is that when this process ends, you'll end up with
+a kernel panic. PID 1 can never ever die or exit during the entire runtime of
+your system. A second and less important consequence of being PID 1 is when
+another process 'reparents' like when a process forks to the background PID 1
+will become the parent process.
+
+This implies that PID 1 has a special role to fill in our operating system.
+Namely that of starting everything, keeping everything running, and shutting
+everything down because it's the first and last process to live.
+
+This also makes this ``init`` process very suitable to start and manage services
+as is the case with the very common ``sysvinit`` and the more modern
+``systemd``. But this isn't strictly necessary and some other process can cary
+the burden of service supervision, which is the case with the
+[runit](http://smarden.org/runit/)-like ``init`` that is included with
+``busybox``.
+
+Unless you passed the ``rw`` kernel parameter the root filesystem is mounted as
+read-only. So before we can make changes to our running system we have to
+remount it as read-write first. And before we can do any mounting at all we have
+to mount the ``proc`` pseudo filesystem that serves as an interface to kernel.
+```bash
+$ mount -t proc proc /proc
+$ mount / -o remount,rw
+```
+
+So first things first, we'll create a script
+Don't forget to ``chmod +x`` this file when you're creating it.
+```bash
+#!/bin/sh
+# /etc/init.d/startup
+
+# mount the special pseudo filesytems /proc and /sys
+mount -t proc proc /proc -o nosuid,noexec,nodev
+mount -t sysfs sys /sys -o nosuid,noexec,nodev
+# /dev isn't required if we boot without initramfs because the kernel
+# will have done this for us but it doesn't hurt
+mount -t devtmpfs dev /dev -o mode=0755,nosuid
+mkdir -p /dev/pts /dev/shm
+# /dev/pts contains pseudo-terminals, gid 5 should be the
+# tty user group
+mount -t devpts devpts /dev/pts -o mode=0620,gid=5,nosuid,noexec
+# /run contains runtime files like pid files and domain sockets
+# they don't need to be stored on the disk, we'll store them in RAM
+mount -t tmpfs run /run -o mode=0755,nosuid,nodev
+mount -t tmpfs shm /dev/shm -o mode=1777,nosuid,nodev
+
+# the kernel does not read /etc/hostname on it's own
+# you need to write it in /proc/sys/kernel/hostname to set it
+if [[ -f /etc/hostname ]]; then
+  cat /etc/hostname > /proc/sys/kernel/hostname
+fi
+
+# populate /dev with devices by analyzing /sys
+mdev -s
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+
+# the "localhost" loopback network interface is
+# down at boot, we have to set it 'up' or we won't be able to
+# make local network connections
+ip link set up dev lo
+
+# mounts all filesystems in /etc/fstab
+mount -a
+# make the root writable if this hasn't been done already
+mount -o remount,rw /
+# end of /etc/init.d/startup
+```
+
+```inittab
+# /etc/inittab
+::sysinit:/etc/init.d/startup
+::askfirst:-/bin/sh
+::ctrlaltdel:/bin/umount -a -r
+::shutdown:/bin/umount -a -r
+```
