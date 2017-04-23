@@ -230,13 +230,15 @@ absolute path, but they work just fine from within the booted system.
 
 Lastly, we'll copy some files from ``../filesystem`` to the image that will be
 some use to us later.
-
-  * ``passwd`` that contains information about users
-
-  * ``shadow`` that contains the hashed passwords of the users. It is best to
-      ``chmod 600`` the file so normal users can't read it.
-
-  * ``fstab`` where
+```bash
+$ cp ../filesystem/{passwd,shadow,group,issue,profile,locale.sh,hosts,fstab} etc
+$ install -Dm755 ../filesystem/simple.script usr/share/udhcpc/default.script
+# optional
+$ install -Dm644 ../filesystem/be-latin1.bmap usr/share/keymaps/be-latin1.bmap
+```
+These are the basic configuration files for a UNIX system. The .script file is
+required for running a dhcp client, which we'll get to later. The keymap file is
+a binary keymap file for belgian azerty I use.
 
 The Boot Loader
 ---------------
@@ -339,14 +341,13 @@ is not just a number and has some special implications for this process. The
 most important thing to note is that when this process ends, you'll end up with
 a kernel panic. PID 1 can never ever die or exit during the entire runtime of
 your system. A second and less important consequence of being PID 1 is when
-another process 'reparents' like when a process forks to the background PID 1
+another process 'reparents' e.g. when a process forks to the background PID 1
 will become the parent process.
 
 This implies that PID 1 has a special role to fill in our operating system.
 Namely that of starting everything, keeping everything running, and shutting
 everything down because it's the first and last process to live.
 
-% TODO better init intro
 This also makes this ``init`` process very suitable to start and manage services
 as is the case with the very common ``sysvinit`` and the more modern
 ``systemd``. But this isn't strictly necessary and some other process can cary
@@ -366,7 +367,12 @@ $ mount / -o remount,rw
 ``busybox`` provides only two ways of editing files: ``vi`` and ``ed``. If you
 are not confortable using either of those you could always shutdown the VM,
 mount the image again, and use your favorite text editor on your host machine.
-% TODO keymap
+
+If you don't use an qwerty keyboard you might have noticed that the VM uses a
+qwerty layout which is the default, you might want to change it to azerty with
+``loadkmap < /usr/share/keymaps/be-latin1.bmap``. You can dump the layout you
+are using on your host machine with ``busybox dumpkmap > keymap.bmap`` in a
+virtual console (not in X) and put this on your image instead.
 
 First, we'll create a script that handles the initialisation of the system
 itself like mounting filesystems and configuring devices, etc. I called it
@@ -412,6 +418,9 @@ echo /sbin/mdev > /proc/sys/kernel/hotplug
 # make local network connections
 ip link set up dev lo
 
+# you could add the following to change the keyboard layout at boot
+loadkmap < /usr/share/keymaps/be-latin1.bmap
+
 # mounts all filesystems in /etc/fstab
 mount -a
 # make the root writable if this hasn't been done already
@@ -448,17 +457,22 @@ of the ``getty``'s do ``::askfirst:-/bin/sh``. ``askfirst`` does the same as
 figure out what the console is. And the ``-`` infront of ``-/bin/sh`` means that
 the shell is started as a login shell. ``/bin/login`` usually does this for us
 but we have to specify it here. Starting the shell as a login shell means that
-it configures certain things it otherwise assumes already to be configured.
+it configures certain things it otherwise assumes already to be configured. E.g.
+it sources ``/etc/profile``.
 
-We can you start our system with ``init``. You can remove the ``init=/bin/sh``
+We can now start our system with ``init``. You can remove the ``init=/bin/sh``
 entry in ``/boot/grub/grub.cfg`` because it defaults to ``/sbin/init``. And if
-you reboot the system you should see a login screen. Instead of rebooting, you
-could also do
+you reboot the system you should see a login screen. But if you run ``reboot``,
+you'll notice it won't do anything. This happens because normally ``reboot``
+tells the running ``init`` to reboot. You know, the ``init`` that isn't running
+right now. So we have two options, we could run ``reboot -f`` which skips the
+``init``, or we could do this:
 ```bash
 $ exec init
 ```
 Because the shell we are currently using is PID 1 and you could just replace the
-shell process with ``init``
+shell process with ``init`` and our system should be properly booted now
+presenting you a login prompt.
 
 The root password should be empty so it should only ask for a username.
 
