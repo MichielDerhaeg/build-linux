@@ -200,7 +200,7 @@ $ mkdir -p usr/{sbin,bin} bin sbin boot
 ```
 And while we're at it, we can create the rest of the file system hierarchy. This
 is actually standardized and applications often assume this is the way you're
-doing it, but you can often do what you want. You can find more info in this
+doing it, but you can often do what you want. You can find more info
 [here](http://www.pathname.com/fhs/).
 ```bash
 $ mkdir -p {dev,etc,home,lib}
@@ -227,6 +227,16 @@ done
 ```
 These symlinks might be incorrect from outside the system because of the
 absolute path, but they work just fine from within the booted system.
+
+Lastly, we'll copy some files from ``../filesystem`` to the image that will be
+some use to us later.
+
+  * ``passwd`` that contains information about users
+
+  * ``shadow`` that contains the hashed passwords of the users. It is best to
+      ``chmod 600`` the file so normal users can't read it.
+
+  * ``fstab`` where
 
 The Boot Loader
 ---------------
@@ -336,6 +346,7 @@ This implies that PID 1 has a special role to fill in our operating system.
 Namely that of starting everything, keeping everything running, and shutting
 everything down because it's the first and last process to live.
 
+% TODO better init intro
 This also makes this ``init`` process very suitable to start and manage services
 as is the case with the very common ``sysvinit`` and the more modern
 ``systemd``. But this isn't strictly necessary and some other process can cary
@@ -352,8 +363,15 @@ $ mount -t proc proc /proc
 $ mount / -o remount,rw
 ```
 
-So first things first, we'll create a script
-Don't forget to ``chmod +x`` this file when you're creating it.
+``busybox`` provides only two ways of editing files: ``vi`` and ``ed``. If you
+are not confortable using either of those you could always shutdown the VM,
+mount the image again, and use your favorite text editor on your host machine.
+% TODO keymap
+
+First, we'll create a script that handles the initialisation of the system
+itself like mounting filesystems and configuring devices, etc. I called it
+``startup`` and put it in the ``/etc/init.d`` directory (create this first).
+Don't forget to ``chmod +x`` this file when you're done.
 ```bash
 #!/bin/sh
 # /etc/init.d/startup
@@ -372,6 +390,9 @@ mount -t devpts devpts /dev/pts -o mode=0620,gid=5,nosuid,noexec
 # they don't need to be stored on the disk, we'll store them in RAM
 mount -t tmpfs run /run -o mode=0755,nosuid,nodev
 mount -t tmpfs shm /dev/shm -o mode=1777,nosuid,nodev
+# the nosuid,noexec,nodev options are for security reasons and are not
+# strictly necessary, you can read about them in the 'mount'
+# man page
 
 # the kernel does not read /etc/hostname on it's own
 # you need to write it in /proc/sys/kernel/hostname to set it
@@ -379,7 +400,10 @@ if [[ -f /etc/hostname ]]; then
   cat /etc/hostname > /proc/sys/kernel/hostname
 fi
 
-# populate /dev with devices by analyzing /sys
+# mdev is a mini-udev implementation that
+# populates /dev with devices by scanning /sys
+# see the util-linux/mdev.c file in the busybox source
+# for more information
 mdev -s
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 
@@ -395,10 +419,49 @@ mount -o remount,rw /
 # end of /etc/init.d/startup
 ```
 
+The next file is the init configuration ``/etc/inittab``. The syntax of this
+file is very similar to that of ``sysvinit``'s ``inittab`` but has several
+differences. For more information you can look at the ``examples/inittab`` file
+in the busybox source.
 ```inittab
 # /etc/inittab
+::sysinit:/bin/echo STARTING SYSTEM
 ::sysinit:/etc/init.d/startup
-::askfirst:-/bin/sh
+tty1::respawn:/sbin/getty 38400 tty1
+tty2::respawn:/sbin/getty 38400 tty2
+tty3::respawn:/sbin/getty 38400 tty3
 ::ctrlaltdel:/bin/umount -a -r
+::shutdown:/bin/echo SHUTTING DOWN
 ::shutdown:/bin/umount -a -r
+# end of /etc/inittab
 ```
+The ``sysinit`` entry is the first command ``init`` will execute. We'll put our
+``startup`` script here. You can specify multiple entries of this kind and they
+will be executed sequentially. The same goes for the ``shutdown`` entry, which
+will obviously be executed at shutdown. The ``respawn`` entries will be executed
+after ``sysinit`` and will be restarted when they exit. We'll put some
+``getty``'s on the specified tty's. These will ask for your username and execute
+``/bin/login`` which will ask for your password and stars a shell for you when
+it's correct. If you don't care for user login and passwords, you could instead
+of the ``getty``'s do ``::askfirst:-/bin/sh``. ``askfirst`` does the same as
+``respawn`` but asks you to press enter first. No tty is specified so it will
+figure out what the console is. And the ``-`` infront of ``-/bin/sh`` means that
+the shell is started as a login shell. ``/bin/login`` usually does this for us
+but we have to specify it here. Starting the shell as a login shell means that
+it configures certain things it otherwise assumes already to be configured.
+
+We can you start our system with ``init``. You can remove the ``init=/bin/sh``
+entry in ``/boot/grub/grub.cfg`` because it defaults to ``/sbin/init``. And if
+you reboot the system you should see a login screen. Instead of rebooting, you
+could also do
+```bash
+$ exec init
+```
+Because the shell we are currently using is PID 1 and you could just replace the
+shell process with ``init``
+
+The root password should be empty so it should only ask for a username.
+
+Service Supervision
+-------------------
+% TODO
