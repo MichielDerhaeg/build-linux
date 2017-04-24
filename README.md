@@ -402,6 +402,7 @@ mount -t tmpfs shm /dev/shm -o mode=1777,nosuid,nodev
 
 # the kernel does not read /etc/hostname on it's own
 # you need to write it in /proc/sys/kernel/hostname to set it
+# don't forget to create this file if you want to give your system a name
 if [[ -f /etc/hostname ]]; then
   cat /etc/hostname > /proc/sys/kernel/hostname
 fi
@@ -478,4 +479,114 @@ The root password should be empty so it should only ask for a username.
 
 Service Supervision
 -------------------
-% TODO
+
+In the last part of our OS building adventure we'll look into setting up some
+services. An important thing to note is that we are using
+[runit](http://smarden.org/runit/) for service supervision, which is different
+quite from how the more common ``sysvinit`` does things but it'll give you a
+feel for which problems it's supposed to solve and how.
+
+A basic service consists of a directory containing a ``run`` executable, usually
+a script. This ``run`` script usually starts the daemon and doesn't exit untill
+the daemon does. If ``run`` exits ``runit`` will thinks the service itself has
+stopped and if it wasn't supposed to stop, ``runit`` will try to restart it. So
+be careful with forking daemons. Startin the service is done with ``runsv``.
+This is the process that actually monitors the service and restarts it if
+necessary. Usually you won't run it manually but doing so is useful for testing
+services.
+
+The first service we are going to create is a logging service that collects
+messages from other processes and stores them in files.
+
+```bash
+$ mkdir -p /etc/init.d/syslogd
+$ vi /etc/init.d/syslogd/run
+$ cat /etc/init.d/syslog/run
+#!/bin/sh
+exec syslogd -n
+$ chmod +x /etc/init.d/syslog/run
+$ runsv /etc/init.d/syslogd & # asynchronous
+$ sv status /etc/init.d/syslogd
+run: /etc/init.d/syslogd: (pid 991) 1170s
+```
+It's that simple, but we have to make sure ``syslogd`` doesn't fork or else
+``runsv`` will keep trying to start it even though it is already running. That's
+what the ``-n`` option is for. The ``sv`` command can be used to control the
+service.
+
+To make sure that our new service is started at boot we could create a new
+``inittab`` entry for it but this isn't very flexible. A better solution is to
+use ``runsvdir``. This runs ``runsv`` for every service in a directory. So
+running ``runsvdir /etc/init.d`` would do the trick but this way we can't
+disable services at boot. To solve this issue we'll create a seperate directory
+and symlink the enabled services in there.
+```bash
+$ mkdir -p /etc/rc.d
+$ ln -s /etc/init.d/syslogd /etc/rc.d
+$ runsvdir /etc/rc.d & # asynchronous
+```
+If we add ``::respawn:/usr/bin/runsvdir /etc/rc.d`` to ``/etc/inittab`` all the
+services symlinked in ``/etc/rc.d`` will be started at boot. Enabling and
+disabling a service now consists of creating and removing a symlink in ``/etc/rc.d``.
+Note that ``runsvdir`` monitors this directory and starts the service when the
+symlink appears and not just at boot.
+
+### Syslog
+
+``syslogd`` implements the well known ``syslog`` protocol for logging. This
+means that it creates a UNIX domain socket at ``/dev/log`` for daemons to
+connect and send their logs to. Usually it puts all of the collected logs in
+``/var/log/messages`` unless told otherwise. You can specify filters in
+``/etc/syslog.conf`` to put certain logs in different files.
+```bash
+$ vi /etc/syslog.conf
+$ cat /etc/syslog.conf
+kern.* /var/log/kernel.log
+$ sv down /etc/init.d/syslogd # restart
+$ sv up /etc/init.d/syslogd
+```
+This will put everything the kernel has to say in a seperate log file
+``/var/log/kernel.log``. But ``syslogd`` doesn't read the kernel logs like
+``rsyslog`` does. We need a different service for that.
+```bash
+$ mkdir -p /etc/init.d/klogd
+$ vi /etc/init.d/klogd/run
+$ cat /etc/init.d/klogd/run
+#!/bin/sh
+sv up /etc/init.d/syslogd || exit 1
+exec klogd -n
+$ chmod +x /etc/init.d/klogd
+$ ln -s /etc/init.d/klogd /etc/rc.d
+```
+And now we should see kernel logs appearing in ``/var/log/kernel.log``.
+The ``sv up /etc/init.d/syslogd || exit 1`` line makes sure ``syslogd`` is
+started before ``klogd``. This is how we add dependencies in ``runit``. If
+``syslogd`` hasn't been started yet ``sv`` will fail and ``run`` will exit.
+``runsvdir`` will attempt to restart ``klogd`` after a while and will only
+succeed when ``syslogd`` has been started.
+
+### DHCP
+
+The very last thing we will do is provide our system with a network connection.
+```bash
+$ mkdir -p /etc/init.d/udhcpc
+$ vi /etc/init.d/udhcpc
+$ cat /etc/init.d/udhcpc
+#!/bin/sh
+exec udhcpc -f -S
+$ chmod +x /etc/init.d/udhcpc/run
+$ ln -s /etc/init.d/udhcpc/run /etc/rc.d
+```
+And we're done. Yes it's that simple. Note that udhcpc just asks for a lease
+from the DHCP server and that's it. When it has a lease it executes
+``/usr/share/udhcpc/default.script`` to configure the system. We already copied
+this script to this location. This script is included with the busybox source.
+These script usually use ``ip``, ``route``, and write to ``/etc/resolv.conf``.
+If you would like a static ip, you'll have to write a script that does these
+things.
+
+Epilogue
+--------
+
+That's it! We're done for now. I hope you learned something useful, I certainly
+did while making this.
