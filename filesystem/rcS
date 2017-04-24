@@ -1,24 +1,24 @@
 #!/bin/sh
 
-# TODO options
-/usr/bin/mount -t proc proc /proc
-/usr/bin/mount -t sysfs sys /sys
-#/usr/bin/mount -t devtmpfs dev /dev
-mkdir -p /dev/pts /dev/shm # TODO check if in filesystem
-/usr/bin/mount -t devpts devpts /dev/pts
-/usr/bin/mount -t tmpfs tmpfs /dev/shm
-/usr/bin/mount -t tmpfs tmpfs /run
+mount -t proc proc /proc -o nosuid,noexec,nodev
+mount -t sysfs sys /sys -o nosuid,noexec,nodev
+mount -t tmpfs run /run -o mode=0755,nosuid,nodev
+mount -t devtmpfs dev /dev -o mode=0755,nosuid
+mkdir -p /dev/pts /dev/shm
+mount -t devpts devpts /dev/pts -o mode=0620,gid=5,nosuid,noexec
+mount -t tmpfs shm /dev/shm -o mode=1777,nosuid,nodev
+mount -t tmpfs tmpfs /run
 
 if [[ -f /etc/hostname ]]; then
   cat /etc/hostname > /proc/sys/kernel/hostname
 fi
 
-/sbin/mdev -s
+mdev -s
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 
-/bin/ip link set up dev lo
+ip link set up dev lo
 
-/usr/bin/mount -a
-/usr/bin/mount -o remount,rw /
+mount -a
+mount -o remount,rw /
 
 loadkmap < /usr/share/keymaps/be-latin1.bmap
