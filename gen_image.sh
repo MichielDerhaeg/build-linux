@@ -5,7 +5,7 @@ if [[ $(id -u) -ne 0 ]]; then
   exit 1
 fi
 
-image=mdos.img
+image=image
 
 rm -f $image
 fallocate -l 100M $image

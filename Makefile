@@ -31,7 +31,7 @@ busybox: busybox-$(BUSYBOX_VERSION) bb-config
 fs.tar: bzImage busybox
 	$(MAKE) -C filesystem
 
-mdos.img: fs.tar gen_image.sh
+image: fs.tar gen_image.sh
 	sudo ./gen_image.sh
 
 html: doc/doc.html
