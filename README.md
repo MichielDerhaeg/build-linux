@@ -12,10 +12,10 @@ spent reading very old and hard to find documentation. Or when there was none,
 the source code of how other people were doing it. So I thought, why not share
 what I have learned.*
 
-[This git repo](todo) contains a Makefile and scripts that automate everything
-that will be explained in this document. But it doesn't necessarily do
-everything in the same order as it's explained. You can also use that as
-reference if you'd like.
+[This git repo](https://github.com/MichielDerhaeg/build-linux) contains a
+Makefile and scripts that automate everything that will be explained in this
+document. But it doesn't necessarily do everything in the same order as it's
+explained. You can also use that as reference if you'd like.
 
 The Linux Kernel
 ----------------
