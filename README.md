@@ -87,8 +87,9 @@ Busybox Userspace
 All these tools you know and love like ``ls``, ``echo``, ``cat`` ``mv``, and
 ``rm`` and so on are commonly referred to as the 'coreutils'. Busybox has that
 and alot more, like utilities from ``util-linux`` so we can do stuff like
-``mount`` and even a complete init system. Basicly most tools to expect to be
-present on a Linux system only are these somewhat simplified.
+``mount`` and even a complete init system. Basically, it contains most tools
+you expect to be present on a Linux system, except they are a slightly
+simplified version of the regular ones.
 
 You can get the source from [busybox.net](https://busybox.net/). They also
 provide prebuilt binaries which will do just fine for most use-cases. But just
