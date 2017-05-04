@@ -1,3 +1,4 @@
+NPROCS=(grep -c ^processor /proc/cpuinfo)
 KERNEL_VERSION=4.4.52
 KERNEL_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$(KERNEL_VERSION).tar.xz
 BUSYBOX_VERSION=1.26.2
@@ -13,7 +14,7 @@ linux-$(KERNEL_VERSION): linux-$(KERNEL_VERSION).tar.xz
 	cp kernel-config linux-$(KERNEL_VERSION)/.config
 
 bzImage: linux-$(KERNEL_VERSION) kernel-config
-	$(MAKE) -C linux-$(KERNEL_VERSION)
+	$(MAKE) -j$(NPROCS) -C linux-$(KERNEL_VERSION)
 	cp linux-$(KERNEL_VERSION)/arch/x86/boot/bzImage .
 
 busybox-$(BUSYBOX_VERSION).tar.bz2:
@@ -25,11 +26,11 @@ busybox-$(BUSYBOX_VERSION): busybox-$(BUSYBOX_VERSION).tar.bz2
 busybox: busybox-$(BUSYBOX_VERSION) bb-config
 	sed '1,1i#include <sys/resource.h>' -i busybox-$(BUSYBOX_VERSION)/include/libbb.h
 	cp bb-config busybox-$(BUSYBOX_VERSION)/.config
-	$(MAKE) CC=musl-gcc -C busybox-$(BUSYBOX_VERSION)
+	$(MAKE) -j$(NPROCS) CC=musl-gcc -C busybox-$(BUSYBOX_VERSION)
 	cp busybox-$(BUSYBOX_VERSION)/busybox .
 
 fs.tar: bzImage busybox
-	$(MAKE) -C filesystem
+	$(MAKE) -j$(NPROCS) -C filesystem
 
 image: fs.tar gen_image.sh
 	sudo ./gen_image.sh
