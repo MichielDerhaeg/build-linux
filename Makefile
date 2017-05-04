@@ -40,5 +40,3 @@ doc/doc.html: README.md doc/header-css.html doc/begin-div.html doc/end-div.html
 	pandoc -f markdown -t html5 README.md -o doc/doc.html -H doc/header-css.html -B doc/begin-div.html -A doc/end-div.html
 
 .PHONY: fs.tar html
-
-test: cat $(NPROCS)
