@@ -1,4 +1,4 @@
-NPROCS="$(grep -c ^processor /proc/cpuinfo)"
+NPROCS=$(grep -c ^processor /proc/cpuinfo)
 KERNEL_VERSION=4.4.52
 KERNEL_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-$(KERNEL_VERSION).tar.xz
 BUSYBOX_VERSION=1.26.2
