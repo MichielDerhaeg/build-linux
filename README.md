@@ -138,16 +138,16 @@ specific things.
 Building the Disk Image
 -----------------------
 
-Installing a OS on a file instead of a real disk complicates things but this
+Installing an OS on a file instead of a real disk complicates things but this
 makes development and testing easier.
 
 So let's start by allocating a new file of size 100M by doing ``fallocate -l100M
 image``(some distro's don't have ``fallocate`` so you can do ``dd if=/dev/zero
 of=image bs=1M count=100`` instead). And then we format it like we would format
-a disk with ``fdisk image``. It automatically creates a MBR partition table for
+a disk with ``fdisk image``. It automatically creates an MBR partition table for
 us and we'll create just one partition filling the whole image by pressing 'n' and
 afterwards just use the default options for everything and keep spamming 'enter'
-untill you're done. Finally press 'w' exit and to write the changes to the
+until you're done. Finally press 'w' exit and to write the changes to the
 image.
 ```bash
 $ fdisk image
@@ -192,8 +192,8 @@ my case. Let's make a filesystem on it.
 ```bash
 $ mkfs.ext4 /dev/loop0p1
 ```
-If you want to use something else than ext4, be sure to enable it when
-configuring your kernel. Now that we have done that, we can mount it start
+If you want to use something other than ext4, be sure to enable it when
+configuring your kernel. Now that we have done that, we can mount it and start
 putting everything in place.
 ```bash
 $ mkdir image_root
@@ -218,7 +218,7 @@ We'll copy our binaries over.
 $ cp /path/to/busybox usr/bin/busybox
 $ cp /path/to/bzImage boot/bzImage
 ```
-You can call every busybox utility by supplying the utility as argument, like
+You can call every busybox utility by supplying the utility as an argument, like
 so: ``busybox ls --help``. But busybox also detects by what name it is called
 and then executes that utility. So you can put symlinks for each utility and
 busybox can figure out which utility you want by the symlink's name.
@@ -232,7 +232,7 @@ These symlinks might be incorrect from outside the system because of the
 absolute path, but they work just fine from within the booted system.
 
 Lastly, we'll copy some files from ``../filesystem`` to the image that will be
-some use to us later.
+of some use to us later.
 ```bash
 $ cp ../filesystem/{passwd,shadow,group,issue,profile,locale.sh,hosts,fstab} etc
 $ install -Dm755 ../filesystem/simple.script usr/share/udhcpc/default.script
