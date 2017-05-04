@@ -111,7 +111,7 @@ The C standard library is more important to the operating system than you might
 think. It provides some useful functions and an interface to the kernel. But it
 also handles DNS requests and provides a dynamic linker. We don't really have to
 pay attention to any of this, we can just statically link the one we are using
-right know which is probably 'glibc'. This means the following part is optional.
+right now which is probably 'glibc'. This means the following part is optional.
 But I thought this would make it more interesting and it also makes us able to
 build smaller binaries.
 
@@ -121,18 +121,18 @@ on Ubuntu or simply ``musl`` on Arch Linux. Now we can link binaries to musl
 instead of glibc by using ``musl-gcc`` instead of ``gcc``.
 
 Before we can build busybox with musl, we need sanitized kernel headers for use
-with musl. You get get that from [this github
+with musl. You get that from [this github
 repo](https://github.com/sabotage-linux/kernel-headers). And set
 ``CONFIG_EXTRA_CFLAGS`` in your busybox config to
 ``CONFIG_EXTRA_CFLAGS="-I/path/to/kernel-headers/x86_64/include"`` to use them.
 Obviously change ``/path/to`` to the location where you put the headers repo,
-can be relative from within the busybox source directory.
+which can be relative from within the busybox source directory.
 
 If you run ``make CC=musl-gcc`` now, the busybox executable will be
 significantly smaller because we are statically linking a much smaller libc.
 
 Be aware that even though there is a libc standard, musl is not always a
-drop-in replacement from glibc if the application you're compiling uses glibc
+drop-in replacement for glibc if the application you're compiling uses glibc
 specific things.
 
 Building the Disk Image
