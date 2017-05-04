@@ -578,7 +578,7 @@ $ cat /etc/init.d/udhcpc
 #!/bin/sh
 exec udhcpc -f -S
 $ chmod +x /etc/init.d/udhcpc/run
-$ ln -s /etc/init.d/udhcpc/run /etc/rc.d
+$ ln -s /etc/init.d/udhcpc /etc/rc.d
 ```
 And we're done. Yes it's that simple. Note that udhcpc just asks for a lease
 from the DHCP server and that's it. When it has a lease it executes
