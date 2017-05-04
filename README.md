@@ -17,6 +17,10 @@ Makefile and scripts that automate everything that will be explained in this
 document. But it doesn't necessarily do everything in the same order as it's
 explained. You can also use that as reference if you'd like.
 
+Dependencies for ubuntu:
+```
+sudo apt install build-essential musl-tools grub-pc-bin #grub-pc-bin is required if you have efi installation
+```
 The Linux Kernel
 ----------------
 
