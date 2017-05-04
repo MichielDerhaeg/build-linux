@@ -30,7 +30,7 @@ busybox: busybox-$(BUSYBOX_VERSION) bb-config
 	cp busybox-$(BUSYBOX_VERSION)/busybox .
 
 fs.tar: bzImage busybox
-	$(MAKE) -j$(NPROCS) -C filesystem
+	$(MAKE) -C filesystem
 
 image: fs.tar gen_image.sh
 	sudo ./gen_image.sh
