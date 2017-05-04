@@ -490,10 +490,10 @@ from how the more common ``sysvinit`` does things but it'll give you a
 feel for which problems it's supposed to solve and how.
 
 A basic service consists of a directory containing a ``run`` executable, usually
-a script. This ``run`` script usually starts the daemon and doesn't exit untill
-the daemon does. If ``run`` exits ``runit`` will thinks the service itself has
+a script. This ``run`` script usually starts the daemon and doesn't exit until
+the daemon does. If ``run`` exits ``runit`` will think the service itself has
 stopped and if it wasn't supposed to stop, ``runit`` will try to restart it. So
-be careful with forking daemons. Startin the service is done with ``runsv``.
+be careful with forking daemons. Starting the service is done with ``runsv``.
 This is the process that actually monitors the service and restarts it if
 necessary. Usually you won't run it manually but doing so is useful for testing
 services.
@@ -581,7 +581,7 @@ exec udhcpc -f -S
 $ chmod +x /etc/init.d/udhcpc/run
 $ ln -s /etc/init.d/udhcpc/run /etc/rc.d
 ```
-And we're done. Yes it's that simple. Note that udhcpc just asks for a lease
+Now we're done. Yes - it's that simple. Note that udhcpc just asks for a lease
 from the DHCP server and that's it. When it has a lease it executes
 ``/usr/share/udhcpc/default.script`` to configure the system. We already copied
 this script to this location. This script is included with the busybox source.
@@ -593,4 +593,4 @@ Epilogue
 --------
 
 That's it! We're done for now. Thanks for reading. I hope you learned something
-useful, I certainly did while making this.
+useful. I certainly did while making this.
