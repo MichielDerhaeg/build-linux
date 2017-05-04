@@ -353,14 +353,14 @@ everything down because it's the first and last process to live.
 
 This also makes this ``init`` process very suitable to start and manage services
 as is the case with the very common ``sysvinit`` and the more modern
-``systemd``. But this isn't strictly necessary and some other process can cary
+``systemd``. But this isn't strictly necessary and some other process can carry
 the burden of service supervision, which is the case with the
 [runit](http://smarden.org/runit/)-like ``init`` that is included with
 ``busybox``.
 
 Unless you passed the ``rw`` kernel parameter the root filesystem is mounted as
 read-only. So before we can make changes to our running system we have to
-remount it as read-write first. And before we can do any mounting at all we have
+remount it as read-write first. Before we can do any mounting at all we have
 to mount the ``proc`` pseudo filesystem that serves as an interface to kernel.
 ```bash
 $ mount -t proc proc /proc
@@ -371,14 +371,14 @@ $ mount / -o remount,rw
 are not confortable using either of those you could always shutdown the VM,
 mount the image again, and use your favorite text editor on your host machine.
 
-If you don't use an qwerty keyboard you might have noticed that the VM uses a
-qwerty layout which is the default, you might want to change it to azerty with
+If you don't use a qwerty keyboard, you might have noticed that the VM uses a
+qwerty layout as this is the default. You might want to change it to azerty with
 ``loadkmap < /usr/share/keymaps/be-latin1.bmap``. You can dump the layout you
 are using on your host machine with ``busybox dumpkmap > keymap.bmap`` in a
 virtual console (not in X) and put this on your image instead.
 
 First, we'll create a script that handles the initialisation of the system
-itself like mounting filesystems and configuring devices, etc. You could call it
+itself (like mounting filesystems and configuring devices, etc). You could call it
 ``startup`` and put it in the ``/etc/init.d`` directory (create this first).
 Don't forget to ``chmod +x`` this file when you're done.
 ```bash
@@ -458,17 +458,17 @@ after ``sysinit`` and will be restarted when they exit. We'll put some
 it's correct. If you don't care for user login and passwords, you could instead
 of the ``getty``'s do ``::askfirst:-/bin/sh``. ``askfirst`` does the same as
 ``respawn`` but asks you to press enter first. If no tty is specified it will
-figure out what the console is. And the ``-`` infront of ``-/bin/sh`` means that
+figure out what the console is. The ``-`` infront of ``-/bin/sh`` means that
 the shell is started as a login shell. ``/bin/login`` usually does this for us
 but we have to specify it here. Starting the shell as a login shell means that
 it configures certain things it otherwise assumes already to be configured. E.g.
 it sources ``/etc/profile``.
 
 We can now start our system with ``init``. You can remove the ``init=/bin/sh``
-entry in ``/boot/grub/grub.cfg`` because it defaults to ``/sbin/init``. And if
+entry in ``/boot/grub/grub.cfg`` because it defaults to ``/sbin/init``. If
 you reboot the system you should see a login screen. But if you run ``reboot``,
 you'll notice it won't do anything. This happens because normally ``reboot``
-tells the running ``init`` to reboot. You know, the ``init`` that isn't running
+tells the running ``init`` to reboot. You know - the ``init`` that isn't running
 right now. So we have two options, we could run ``reboot -f`` which skips the
 ``init``, or we could do this:
 ```bash
