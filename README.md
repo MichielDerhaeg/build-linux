@@ -574,8 +574,8 @@ runit documentation says about making dependencies.
 The very last thing we will do is provide our system with a network connection.
 ```bash
 $ mkdir -p /etc/init.d/udhcpc
-$ vi /etc/init.d/udhcpc
-$ cat /etc/init.d/udhcpc
+$ vi /etc/init.d/udhcpc/run
+$ cat /etc/init.d/udhcpc/run
 #!/bin/sh
 exec udhcpc -f -S
 $ chmod +x /etc/init.d/udhcpc/run
