@@ -7,7 +7,7 @@ Introduction
 *This started out as a personal project to build a very small Linux based
 operating system that has very few moving parts but is still very complete and
 useful. Along the way of figuring out how to get the damn thing to boot and
-making it do something useful I learned quite alot. Too much time has been
+making it do something useful I learned quite a lot. Too much time has been
 spent reading very old and hard to find documentation. Or when there was none,
 the source code of how other people were doing it. So I thought, why not share
 what I have learned.*
@@ -86,7 +86,7 @@ Busybox Userspace
 
 All these tools you know and love like ``ls``, ``echo``, ``cat`` ``mv``, and
 ``rm`` and so on are commonly referred to as the 'coreutils'. Busybox has that
-and alot more, like utilities from ``util-linux`` so we can do stuff like
+and a lot more, like utilities from ``util-linux`` so we can do stuff like
 ``mount`` and even a complete init system. Basically, it contains most tools
 you expect to be present on a Linux system, except they are a slightly
 simplified version of the regular ones.
