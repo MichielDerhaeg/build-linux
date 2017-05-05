@@ -256,6 +256,9 @@ grub-install --modules=part_msdos \
              --boot-directory="$PWD/boot" \
              /dev/loop0
 ```
+Ubuntu users might need to install ``grub-pc-bin`` first if they are on an EFI
+system.
+
 The ``--target=i386-pc`` tells grub to use the simple msdos MBR bootloader. This
 is often the default, but this can vary from machine to machine so you better
 specify it here. The ``--boot-directory`` options tells grub to install the grub
