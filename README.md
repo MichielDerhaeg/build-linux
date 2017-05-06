@@ -563,7 +563,7 @@ $ cat /etc/init.d/klogd/run
 #!/bin/sh
 sv up /etc/init.d/syslogd || exit 1
 exec klogd -n
-$ chmod +x /etc/init.d/klogd
+$ chmod +x /etc/init.d/klogd/run
 $ ln -s /etc/init.d/klogd /etc/rc.d
 ```
 Now we should see kernel logs appearing in ``/var/log/kernel.log``.
