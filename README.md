@@ -50,7 +50,9 @@ config will do just fine for basic stuff like running in a virtual machine. But
 in our case, we don't really want to deal with kernel modules so we'll just do
 this: ``sed "s/=m/=y/" -i .config``. And we're done, so we can simply do ``make`` to
 build our kernel. Don't forget to add ``-jN`` with `N` the number of cores
-because this might take a while.
+because this might take a while. When it's done, it should tell you where your
+finished kernel is placed. This is usually ``arch/x86/boot/bzImage`` in the
+linux source directory for Intel computers.
 
 Other useful/interesting ways to configure the kernel are:
 
