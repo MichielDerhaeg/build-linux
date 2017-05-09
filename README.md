@@ -43,8 +43,8 @@ editor but it's much better to do it with an interface by doing ``make nconfig``
 (this needs ``libncurses5-dev`` on Ubuntu) because it also deals with
 dependencies of enabled features. Here you can enable/disable features
 and device drivers with the spacebar. ``*`` means that it will be compiled in
-your kernel image. ``M`` means it will be compiled inside a seprate kernel
-module. This is a part of the kernel that will be put in a seperate file and can
+your kernel image. ``M`` means it will be compiled inside a separate kernel
+module. This is a part of the kernel that will be put in a separate file and can
 be loaded in or out dynamically in the kernel when they are required. The default
 config will do just fine for basic stuff like running in a virtual machine. But
 in our case, we don't really want to deal with kernel modules so we'll just do
@@ -144,7 +144,7 @@ Installing an OS on a file instead of a real disk complicates things but this
 makes development and testing easier.
 
 So let's start by allocating a new file of size 100M by doing ``fallocate -l100M
-image``(some distro's don't have ``fallocate`` so you can do ``dd if=/dev/zero
+image``(some distros don't have ``fallocate`` so you can do ``dd if=/dev/zero
 of=image bs=1M count=100`` instead). And then we format it like we would format
 a disk with ``fdisk image``. It automatically creates an MBR partition table for
 us and we'll create just one partition filling the whole image by pressing 'n' and
@@ -526,7 +526,7 @@ To make sure that our new service is started at boot we could create a new
 ``inittab`` entry for it but this isn't very flexible. A better solution is to
 use ``runsvdir``. This runs ``runsv`` for every service in a directory. So
 running ``runsvdir /etc/init.d`` would do the trick but this way we can't
-disable services at boot. To solve this issue we'll create a seperate directory
+disable services at boot. To solve this issue we'll create a separate directory
 and symlink the enabled services in there.
 ```bash
 $ mkdir -p /etc/rc.d
@@ -553,7 +553,7 @@ kern.* /var/log/kernel.log
 $ sv down /etc/init.d/syslogd # restart
 $ sv up /etc/init.d/syslogd
 ```
-This will put everything the kernel has to say in a seperate log file
+This will put everything the kernel has to say in a separate log file
 ``/var/log/kernel.log``. But ``syslogd`` doesn't read the kernel logs like
 ``rsyslog`` does. We need a different service for that.
 ```bash
