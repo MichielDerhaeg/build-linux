@@ -7,7 +7,7 @@ Introduction
 *This started out as a personal project to build a very small Linux based
 operating system that has very few moving parts but is still very complete and
 useful. Along the way of figuring out how to get the damn thing to boot and
-making it do something useful I learned quite alot. Too much time has been
+making it do something useful I learned quite a lot. Too much time has been
 spent reading very old and hard to find documentation. Or when there was none,
 the source code of how other people were doing it. So I thought, why not share
 what I have learned.*
@@ -43,14 +43,16 @@ editor but it's much better to do it with an interface by doing ``make nconfig``
 (this needs ``libncurses5-dev`` on Ubuntu) because it also deals with
 dependencies of enabled features. Here you can enable/disable features
 and device drivers with the spacebar. ``*`` means that it will be compiled in
-your kernel image. ``M`` means it will be compiled inside a seprate kernel
-module. This is a part of the kernel that will be put in a seperate file and can
+your kernel image. ``M`` means it will be compiled inside a separate kernel
+module. This is a part of the kernel that will be put in a separate file and can
 be loaded in or out dynamically in the kernel when they are required. The default
 config will do just fine for basic stuff like running in a virtual machine. But
 in our case, we don't really want to deal with kernel modules so we'll just do
 this: ``sed "s/=m/=y/" -i .config``. And we're done, so we can simply do ``make`` to
 build our kernel. Don't forget to add ``-jN`` with `N` the number of cores
-because this might take a while.
+because this might take a while. When it's done, it should tell you where your
+finished kernel is placed. This is usually ``arch/x86/boot/bzImage`` in the
+linux source directory for Intel computers.
 
 Other useful/interesting ways to configure the kernel are:
 
@@ -86,9 +88,10 @@ Busybox Userspace
 
 All these tools you know and love like ``ls``, ``echo``, ``cat`` ``mv``, and
 ``rm`` and so on are commonly referred to as the 'coreutils'. Busybox has that
-and alot more, like utilities from ``util-linux`` so we can do stuff like
-``mount`` and even a complete init system. Basicly most tools to expect to be
-present on a Linux system only are these somewhat simplified.
+and a lot more, like utilities from ``util-linux`` so we can do stuff like
+``mount`` and even a complete init system. Basically, it contains most tools
+you expect to be present on a Linux system, except they are a slightly
+simplified version of the regular ones.
 
 You can get the source from [busybox.net](https://busybox.net/). They also
 provide prebuilt binaries which will do just fine for most use-cases. But just
@@ -110,7 +113,7 @@ The C standard library is more important to the operating system than you might
 think. It provides some useful functions and an interface to the kernel. But it
 also handles DNS requests and provides a dynamic linker. We don't really have to
 pay attention to any of this, we can just statically link the one we are using
-right know which is probably 'glibc'. This means the following part is optional.
+right now which is probably 'glibc'. This means the following part is optional.
 But I thought this would make it more interesting and it also makes us able to
 build smaller binaries.
 
@@ -120,33 +123,33 @@ on Ubuntu or simply ``musl`` on Arch Linux. Now we can link binaries to musl
 instead of glibc by using ``musl-gcc`` instead of ``gcc``.
 
 Before we can build busybox with musl, we need sanitized kernel headers for use
-with musl. You get get that from [this github
+with musl. You get that from [this github
 repo](https://github.com/sabotage-linux/kernel-headers). And set
 ``CONFIG_EXTRA_CFLAGS`` in your busybox config to
 ``CONFIG_EXTRA_CFLAGS="-I/path/to/kernel-headers/x86_64/include"`` to use them.
 Obviously change ``/path/to`` to the location where you put the headers repo,
-can be relative from within the busybox source directory.
+which can be relative from within the busybox source directory.
 
 If you run ``make CC=musl-gcc`` now, the busybox executable will be
 significantly smaller because we are statically linking a much smaller libc.
 
 Be aware that even though there is a libc standard, musl is not always a
-drop-in replacement from glibc if the application you're compiling uses glibc
+drop-in replacement for glibc if the application you're compiling uses glibc
 specific things.
 
 Building the Disk Image
 -----------------------
 
-Installing a OS on a file instead of a real disk complicates things but this
+Installing an OS on a file instead of a real disk complicates things but this
 makes development and testing easier.
 
 So let's start by allocating a new file of size 100M by doing ``fallocate -l100M
-image``(some distro's don't have ``fallocate`` so you can do ``dd if=/dev/zero
+image``(some distros don't have ``fallocate`` so you can do ``dd if=/dev/zero
 of=image bs=1M count=100`` instead). And then we format it like we would format
-a disk with ``fdisk image``. It automatically creates a MBR partition table for
+a disk with ``fdisk image``. It automatically creates an MBR partition table for
 us and we'll create just one partition filling the whole image by pressing 'n' and
 afterwards just use the default options for everything and keep spamming 'enter'
-untill you're done. Finally press 'w' exit and to write the changes to the
+until you're done. Finally press 'w' exit and to write the changes to the
 image.
 ```bash
 $ fdisk image
@@ -191,8 +194,8 @@ my case. Let's make a filesystem on it.
 ```bash
 $ mkfs.ext4 /dev/loop0p1
 ```
-If you want to use something else than ext4, be sure to enable it when
-configuring your kernel. Now that we have done that, we can mount it start
+If you want to use something other than ext4, be sure to enable it when
+configuring your kernel. Now that we have done that, we can mount it and start
 putting everything in place.
 ```bash
 $ mkdir image_root
@@ -217,7 +220,7 @@ We'll copy our binaries over.
 $ cp /path/to/busybox usr/bin/busybox
 $ cp /path/to/bzImage boot/bzImage
 ```
-You can call every busybox utility by supplying the utility as argument, like
+You can call every busybox utility by supplying the utility as an argument, like
 so: ``busybox ls --help``. But busybox also detects by what name it is called
 and then executes that utility. So you can put symlinks for each utility and
 busybox can figure out which utility you want by the symlink's name.
@@ -231,7 +234,7 @@ These symlinks might be incorrect from outside the system because of the
 absolute path, but they work just fine from within the booted system.
 
 Lastly, we'll copy some files from ``../filesystem`` to the image that will be
-some use to us later.
+of some use to us later.
 ```bash
 $ cp ../filesystem/{passwd,shadow,group,issue,profile,locale.sh,hosts,fstab} etc
 $ install -Dm755 ../filesystem/simple.script usr/share/udhcpc/default.script
@@ -245,7 +248,7 @@ a binary keymap file I use for belgian azerty.
 The Boot Loader
 ---------------
 
-The next step is to install the bootloader, the program that loads our kernel in
+The next step is to install the bootloader - the program that loads our kernel in
 memory and starts it. For this we use GRUB, one of the most widely used
 bootloaders. It has a ton of features but we are going to keep it very simple.
 Installing it is very simple, we just do this:
@@ -255,8 +258,11 @@ grub-install --modules=part_msdos \
              --boot-directory="$PWD/boot" \
              /dev/loop0
 ```
+Ubuntu users might need to install ``grub-pc-bin`` first if they are on an EFI
+system.
+
 The ``--target=i386-pc`` tells grub to use the simple msdos MBR bootloader. This
-is often the default but this can vary from machine to machine so you better
+is often the default, but this can vary from machine to machine so you better
 specify it here. The ``--boot-directory`` options tells grub to install the grub
 files in /boot inside the image instead of the /boot of your current system.
 ``--modules=part_msdos`` is a workaround for a bug in Ubuntu's grub. When you
@@ -265,7 +271,7 @@ think it needs to support msdos partition tables and won't be able to find the
 root partition.
 
 Now we just have to configure grub and then our system should be able to boot.
-This basicly means telling grub how to load the kernel. This config is located
+This basically means telling grub how to load the kernel. This config is located
 at ``boot/grub/grub.cfg`` (some distro's use ``/boot/grub2``). This file needs
 to be created first, but before we do that, we need to figure something out
 first. If you look at ``/proc/cmdline`` on your own machine you might see
@@ -277,14 +283,14 @@ BOOT_IMAGE=/boot/vmlinuz-4.4.0-71-generic root=UUID=83066fa6-cf94-4de3-9803-ace8
 These are the arguments passed to your kernel when it's booted. The 'root'
 option tells our kernel which device holds the root filesystem that needs to be
 mounted at '/'. The kernel needs to know this or it won't be able to boot. There
-are different ways of identifying your the root filesystem. Using a UUID is a
+are different ways of identifying your root filesystem. Using a UUID is a
 good way because it is a unique identifier for the filesystem generated when you
 do ``mkfs``. The issue with using this is that the kernel doesn't really
 support it because it depends on the implementation of the filesystem. This
-works on your system because it uses an initramfs. But we can't use it now. We
+works on your system because it uses an initramfs, but we can't use it now. We
 could do ``root=/dev/sda1``, this will probably work but it has some other problems.
-The 'a' in 'sda' is can depend on the order the bios will load the disk and this
-can change when you add a new disk or sometimes the order can change randomly.
+The 'a' in 'sda' depends on the order the bios will load the disk and this
+can change when you add a new disk, or for a variety of other reasons.
 Or when you use a different type of interface/disk it can be something entirely
 different. So we need something more robust. I suggest we use the PARTUUID. It's
 a unique id for the partition (and not the filesystem like UUID) and this is a
@@ -294,9 +300,9 @@ a GPT thing). We'll find the id like this:
 $ fdisk -l ../image | grep "Disk identifier"
 Disk identifier: 0x4f4abda5
 ```
-Then we drop the 0x and append the partition number as two digit hexidecimal. A
+Then we drop the 0x and append the partition number as two digit hexidecimal. An
 MBR only has 4 partitions max so that it's hexidecimal or decimal doesn't really
-matter but that's what the standard says. So the grub.cfg should look like this:
+matter, but that's what the standard says. So the grub.cfg should look like this:
 ```
 linux /boot/bzImage quiet init=/bin/sh root=PARTUUID=4f4abda5-01
 boot
@@ -352,14 +358,14 @@ everything down because it's the first and last process to live.
 
 This also makes this ``init`` process very suitable to start and manage services
 as is the case with the very common ``sysvinit`` and the more modern
-``systemd``. But this isn't strictly necessary and some other process can cary
+``systemd``. But this isn't strictly necessary and some other process can carry
 the burden of service supervision, which is the case with the
 [runit](http://smarden.org/runit/)-like ``init`` that is included with
 ``busybox``.
 
 Unless you passed the ``rw`` kernel parameter the root filesystem is mounted as
 read-only. So before we can make changes to our running system we have to
-remount it as read-write first. And before we can do any mounting at all we have
+remount it as read-write first. Before we can do any mounting at all we have
 to mount the ``proc`` pseudo filesystem that serves as an interface to kernel.
 ```bash
 $ mount -t proc proc /proc
@@ -370,14 +376,14 @@ $ mount / -o remount,rw
 are not confortable using either of those you could always shutdown the VM,
 mount the image again, and use your favorite text editor on your host machine.
 
-If you don't use an qwerty keyboard you might have noticed that the VM uses a
-qwerty layout which is the default, you might want to change it to azerty with
+If you don't use a qwerty keyboard, you might have noticed that the VM uses a
+qwerty layout as this is the default. You might want to change it to azerty with
 ``loadkmap < /usr/share/keymaps/be-latin1.bmap``. You can dump the layout you
 are using on your host machine with ``busybox dumpkmap > keymap.bmap`` in a
 virtual console (not in X) and put this on your image instead.
 
 First, we'll create a script that handles the initialisation of the system
-itself like mounting filesystems and configuring devices, etc. You could call it
+itself (like mounting filesystems and configuring devices, etc). You could call it
 ``startup`` and put it in the ``/etc/init.d`` directory (create this first).
 Don't forget to ``chmod +x`` this file when you're done.
 ```bash
@@ -457,17 +463,17 @@ after ``sysinit`` and will be restarted when they exit. We'll put some
 it's correct. If you don't care for user login and passwords, you could instead
 of the ``getty``'s do ``::askfirst:-/bin/sh``. ``askfirst`` does the same as
 ``respawn`` but asks you to press enter first. If no tty is specified it will
-figure out what the console is. And the ``-`` infront of ``-/bin/sh`` means that
+figure out what the console is. The ``-`` infront of ``-/bin/sh`` means that
 the shell is started as a login shell. ``/bin/login`` usually does this for us
 but we have to specify it here. Starting the shell as a login shell means that
 it configures certain things it otherwise assumes already to be configured. E.g.
 it sources ``/etc/profile``.
 
 We can now start our system with ``init``. You can remove the ``init=/bin/sh``
-entry in ``/boot/grub/grub.cfg`` because it defaults to ``/sbin/init``. And if
+entry in ``/boot/grub/grub.cfg`` because it defaults to ``/sbin/init``. If
 you reboot the system you should see a login screen. But if you run ``reboot``,
 you'll notice it won't do anything. This happens because normally ``reboot``
-tells the running ``init`` to reboot. You know, the ``init`` that isn't running
+tells the running ``init`` to reboot. You know - the ``init`` that isn't running
 right now. So we have two options, we could run ``reboot -f`` which skips the
 ``init``, or we could do this:
 ```bash
@@ -489,10 +495,10 @@ from how the more common ``sysvinit`` does things but it'll give you a
 feel for which problems it's supposed to solve and how.
 
 A basic service consists of a directory containing a ``run`` executable, usually
-a script. This ``run`` script usually starts the daemon and doesn't exit untill
-the daemon does. If ``run`` exits ``runit`` will thinks the service itself has
+a script. This ``run`` script usually starts the daemon and doesn't exit until
+the daemon does. If ``run`` exits ``runit`` will think the service itself has
 stopped and if it wasn't supposed to stop, ``runit`` will try to restart it. So
-be careful with forking daemons. Startin the service is done with ``runsv``.
+be careful with forking daemons. Starting the service is done with ``runsv``.
 This is the process that actually monitors the service and restarts it if
 necessary. Usually you won't run it manually but doing so is useful for testing
 services.
@@ -520,7 +526,7 @@ To make sure that our new service is started at boot we could create a new
 ``inittab`` entry for it but this isn't very flexible. A better solution is to
 use ``runsvdir``. This runs ``runsv`` for every service in a directory. So
 running ``runsvdir /etc/init.d`` would do the trick but this way we can't
-disable services at boot. To solve this issue we'll create a seperate directory
+disable services at boot. To solve this issue we'll create a separate directory
 and symlink the enabled services in there.
 ```bash
 $ mkdir -p /etc/rc.d
@@ -547,7 +553,7 @@ kern.* /var/log/kernel.log
 $ sv down /etc/init.d/syslogd # restart
 $ sv up /etc/init.d/syslogd
 ```
-This will put everything the kernel has to say in a seperate log file
+This will put everything the kernel has to say in a separate log file
 ``/var/log/kernel.log``. But ``syslogd`` doesn't read the kernel logs like
 ``rsyslog`` does. We need a different service for that.
 ```bash
@@ -557,7 +563,7 @@ $ cat /etc/init.d/klogd/run
 #!/bin/sh
 sv up /etc/init.d/syslogd || exit 1
 exec klogd -n
-$ chmod +x /etc/init.d/klogd
+$ chmod +x /etc/init.d/klogd/run
 $ ln -s /etc/init.d/klogd /etc/rc.d
 ```
 Now we should see kernel logs appearing in ``/var/log/kernel.log``.
@@ -573,14 +579,14 @@ runit documentation says about making dependencies.
 The very last thing we will do is provide our system with a network connection.
 ```bash
 $ mkdir -p /etc/init.d/udhcpc
-$ vi /etc/init.d/udhcpc
-$ cat /etc/init.d/udhcpc
+$ vi /etc/init.d/udhcpc/run
+$ cat /etc/init.d/udhcpc/run
 #!/bin/sh
 exec udhcpc -f -S
 $ chmod +x /etc/init.d/udhcpc/run
-$ ln -s /etc/init.d/udhcpc/run /etc/rc.d
+$ ln -s /etc/init.d/udhcpc /etc/rc.d
 ```
-And we're done. Yes it's that simple. Note that udhcpc just asks for a lease
+Now we're done. Yes - it's that simple. Note that udhcpc just asks for a lease
 from the DHCP server and that's it. When it has a lease it executes
 ``/usr/share/udhcpc/default.script`` to configure the system. We already copied
 this script to this location. This script is included with the busybox source.
@@ -592,4 +598,4 @@ Epilogue
 --------
 
 That's it! We're done for now. Thanks for reading. I hope you learned something
-useful, I certainly did while making this.
+useful. I certainly did while making this.
