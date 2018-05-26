@@ -38,8 +38,6 @@ for d in cache local opt log/old lib/misc empty; do
 done
 install -d -m1777 var/{tmp,spool/mail}
 
-# allow setgid games to write scores
-install -d -m775 -g games var/games
 ln -s spool/mail var/mail
 ln -s ../run var/run
 ln -s ../run/lock var/lock
