@@ -9,7 +9,14 @@ image=image
 
 rm -f $image
 fallocate -l 100M $image
-echo -e "o\nn\n\n\n\n\nw\n" | fdisk $image
+(
+        echo "n"
+        echo
+        echo
+        echo
+        echo
+        echo "w"
+) | fdisk image
 loopdevice="$(losetup -P --show -f $image)"
 looppart=${loopdevice}p1
 mkfs.ext4 $looppart
